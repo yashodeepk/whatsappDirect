@@ -1,8 +1,13 @@
+import 'dart:io';
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:call_log/call_log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:whatsapp_direct/directWhatsapp.dart';
 
 void main() {
   runApp(const MyApp());
@@ -149,7 +154,14 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _getCalllogs,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    const DirectWhatsAppMsg(title: "Whatsapp Direct")),
+          );
+        },
         tooltip: 'Send',
         child: const Icon(Icons.whatsapp_sharp),
       ), // This trailing comma makes auto-formatting nicer for build methods.
@@ -194,26 +206,91 @@ class _ContactCardState extends State<ContactCard> {
     return name.isEmpty ? 'U' : name[0];
   }
 
+  static String dateTimeFormater(int epochTimestamp) {
+    DateTime dt = DateTime.fromMillisecondsSinceEpoch(epochTimestamp);
+    String formattedDate = DateFormat('E d MMM hh:mm:ss').format(dt);
+    return formattedDate;
+  }
+
+  String url(String phone, String text) {
+    if (Platform.isAndroid) {
+      return "whatsapp://send?phone=$phone/text=$text}"; // new line
+    } else {
+      return "https://api.whatsapp.com/send?phone=$phone}"; // new line
+    }
+  }
+
+  _launchWhatsapp(String number) async {
+    var whatsapp = number;
+    var whatsappAndroid = Uri.parse(url(whatsapp, ""));
+    await launchUrl(whatsappAndroid);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+      padding: const EdgeInsets.fromLTRB(2, 0, 5, 0),
       child: Card(
         elevation: 0,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20.0),
-          child: Container(
-            alignment: Alignment.center,
-            child: CircleAvatar(
-              backgroundColor: Colors.green[
-                  ((returnFirstNameChar(widget.name).codeUnitAt(0)) %
-                          Colors.primaries.length) *
-                      100],
-              radius: 28,
-              child: Text(
-                returnFirstNameChar(widget.name),
-                style: const TextStyle(color: Colors.white, fontSize: 20),
-              ),
+        child: InkWell(
+          onTap: (() => {_launchWhatsapp(widget.number)}),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20.0),
+            child: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.green[
+                          ((returnFirstNameChar(widget.name).codeUnitAt(0)) %
+                                  Colors.primaries.length) *
+                              100],
+                      radius: 26,
+                      child: Text(
+                        returnFirstNameChar(widget.name),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                    child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AutoSizeText(
+                      widget.name.isEmpty ? widget.number : widget.name,
+                      style: const TextStyle(color: Colors.black, fontSize: 18),
+                      maxLines: 1,
+                      minFontSize: 18,
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          (widget.type == "CallType.incoming"
+                              ? Icons.call_received
+                              : Icons.call_made),
+                          size: 16,
+                        ),
+                        AutoSizeText(
+                          "• ${dateTimeFormater(int.parse(widget.date))}",
+                          style: const TextStyle(
+                              color: Colors.black, fontSize: 16),
+                          maxLines: 1,
+                          minFontSize: 16,
+                        )
+                      ],
+                    )
+                  ],
+                ))
+              ],
             ),
           ),
         ),
