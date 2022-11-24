@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.transergllp.whatsapp_direct">
    <application
-        android:label="whatsapp_direct"
+        android:label="whatsappDM"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

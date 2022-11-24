@@ -22,10 +22,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Whatsapp Direct',
+      title: 'WhatsappDM',
       theme: ThemeData(
           primarySwatch: Colors.green, scaffoldBackgroundColor: Colors.white),
-      home: const MyHomePage(title: 'Whatsapp Direct'),
+      home: const MyHomePage(title: 'WhatsappDM'),
     );
   }
 }
@@ -193,7 +193,7 @@ class _MyHomePageState extends State<MyHomePage> {
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                    const DirectWhatsAppMsg(title: "Whatsapp Direct")),
+                    const DirectWhatsAppMsg(title: "WhatsappDM")),
           );
         },
         tooltip: 'Send',
