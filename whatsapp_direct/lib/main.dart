@@ -1,13 +1,14 @@
 import 'dart:io';
 import 'dart:math';
-
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:call_log/call_log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:whatsapp_direct/directWhatsapp.dart';
+import 'package:whatsappdm/directWhatsapp.dart';
+import 'package:whatsappdm/ad_helper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,6 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late Iterable<CallLogEntry> entries;
   int callLogsTill = 5;
   bool? fetching = true;
+  BannerAd? _bannerAd;
   final _refreshKey = GlobalKey<RefreshIndicatorState>();
 
   void _printCallLogs(Iterable<CallLogEntry> entry) {
@@ -81,7 +83,30 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     _getCalllogs();
+    _initGoogleMobileAds();
+
+    BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      request: AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _bannerAd = ad as BannerAd;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          ad.dispose();
+        },
+      ),
+    ).load();
     super.initState();
+  }
+
+  Future<InitializationStatus> _initGoogleMobileAds() {
+    // TODO: Initialize Google Mobile Ads SDK
+    return MobileAds.instance.initialize();
   }
 
   @override
@@ -92,6 +117,15 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: [
+          if (_bannerAd != null)
+            Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
+            ),
           entries.toList().isEmpty
               ? fetching!
                   ? const Center(
