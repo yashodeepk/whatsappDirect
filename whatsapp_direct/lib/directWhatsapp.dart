@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:whatsappdm/ad_helper.dart';
 
 class DirectWhatsAppMsg extends StatefulWidget {
   const DirectWhatsAppMsg({Key? key, required this.title}) : super(key: key);
@@ -15,6 +17,7 @@ class DirectWhatsAppMsg extends StatefulWidget {
 
 class _DirectWhatsAppMsgState extends State<DirectWhatsAppMsg> {
   final GlobalKey<FormState> messageformkey = GlobalKey<FormState>();
+  BannerAd? _bannerAd;
 
   late String phone;
   late String message = "";
@@ -32,8 +35,31 @@ class _DirectWhatsAppMsgState extends State<DirectWhatsAppMsg> {
     super.dispose();
   }
 
+  Future<InitializationStatus> _initGoogleMobileAds() {
+    // TODO: Initialize Google Mobile Ads SDK
+    return MobileAds.instance.initialize();
+  }
+
   @override
   void initState() {
+    _initGoogleMobileAds();
+
+    BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _bannerAd = ad as BannerAd;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          ad.dispose();
+        },
+      ),
+    ).load();
     // TODO: implement initState
     super.initState();
   }
@@ -72,6 +98,15 @@ class _DirectWhatsAppMsgState extends State<DirectWhatsAppMsg> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
+                    if (_bannerAd != null)
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: SizedBox(
+                          width: _bannerAd!.size.width.toDouble(),
+                          height: _bannerAd!.size.height.toDouble(),
+                          child: AdWidget(ad: _bannerAd!),
+                        ),
+                      ),
                     SizedBox(
                       height: MediaQuery.of(context).size.height / 4,
                       child: Column(
